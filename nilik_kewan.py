@@ -1,56 +1,40 @@
 import streamlit as st
-from keras.models import load_model
-from keras.applications.vgg16 import VGG16
-import joblib
-import numpy as np
 from PIL import Image
+import numpy as np
+import torch
+from transformers import AutoImageProcessor, AutoModelForImageClassification
 
-def predict_image_streamlit(pil_img):
-    animals = ['butterflies', 'chickens', 'elephants', 'horses', 'spiders', 'squirells']
+@st.cache_resource
+def load_model():
+    # 1) load processor & model dari HF
+    processor = AutoImageProcessor.from_pretrained("Falcom/animal-classifier")
+    model = AutoModelForImageClassification.from_pretrained("Falcom/animal-classifier")
+    model.eval()
+    return processor, model
 
-    img_resized = pil_img.resize((224, 224)).convert("RGB")
-    img_array = np.array(img_resized)
-    img_array = np.expand_dims(img_array, axis=0) / 255.0
+processor, model = load_model()
 
-    features = vgg16.predict(img_array)  # ekstrak fitur
-    preds = model.predict_proba(features)  # prediksi probabilitas
-    class_pred = model.predict(features)[0]
-
-    # Balikkan hasil prediksi
-    result = {
-        "class": animals[class_pred],
-        "probabilities": dict(zip(animals, np.round(preds[0] * 100, 2)))
-    }
-    return result
+def predict(pil_img: Image.Image):
+    # 2) preprocess
+    inputs = processor(images=pil_img, return_tensors="pt")
+    with torch.no_grad():
+        outputs = model(**inputs)
+    probs = torch.nn.functional.softmax(outputs.logits, dim=-1)[0].cpu().numpy()
+    # 3) ambil label & probabilitas
+    labels = model.config.id2label  # dict: idx→class name
+    sorted_idxs = np.argsort(probs)[::-1]
+    top1 = sorted_idxs[0]
+    return labels[top1], { labels[i]: float(np.round(probs[i]*100,2)) for i in sorted_idxs[:5] }
 
 st.title("Nilik Kewan")
-st.write("Hallo Pals , ini adalah project saya untuk mengenali hewan apakah yang kamu input dibawah ini")
-st.write("Gas Di Tilik")
+st.write("Masukkan foto hewan, saya akan tebak apa itu!")
 
-uploaded_files = st.file_uploader(
-    "Input Foto Hewan", accept_multiple_files=True
-)
-for uploaded_file in uploaded_files:
-    bytes_data = uploaded_file.read()
-    st.write("filename:", uploaded_file.name)
-    st.write(bytes_data)
-
-if uploaded_files:
-    st.subheader("GASS DI PREDICTT:")
-    st.button("PREDICT", type="primary")
-
-    if st.button("PREDICT", type="primary"):
-        for uploaded_file in uploaded_files:
-            img = Image.open(uploaded_file)
-            st.image(img, caption=uploaded_file.name, use_column_width=True)
-
-            # Panggil fungsi prediksi
-            result = predict_image_streamlit(img)
-
-            # Tampilkan hasil
-            st.write(f"🔍 **Prediksi Akhir**: `{result['class']}`")
-            st.write("📊 Probabilitas:")
-            st.json(result["probabilities"])
-            
-            
-
+uploaded = st.file_uploader("Upload gambar hewan", type=["jpg","jpeg","png"])
+if uploaded:
+    img = Image.open(uploaded).convert("RGB")
+    st.image(img, caption="Input Image", use_column_width=True)
+    if st.button("Predict"):
+        cls, top_probs = predict(img)
+        st.markdown(f"**Prediksi:** `{cls}`")
+        st.markdown("**Top-5 Probabilitas:**")
+        st.json(top_probs)

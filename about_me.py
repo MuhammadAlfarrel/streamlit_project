@@ -25,10 +25,6 @@ with container:
         st.write("""Hallo! Nama saya Muhammad Alfarrel Arya Mahardika,
                   Saya adalah seorang Mahasiswa di Politeknik Elektronika Negeri Surabaya dan
                   sekarang sedang belajar di Program Studi Teknik Komputer""", )
-        st.subheader("Berikut Data diri saya")
-        st.write("Nama : Muhammad Alfarrel Arya Mahardika")
-        st.write("Tempat, Tanggal Lahir : Malang, 6 Mei 2004")
-        st.write("Alamat : Jl. Veteran 1A No. 14A, Pasuruan")
         
     st.subheader("Berikut Page sosial media saya:")
     st.markdown("""

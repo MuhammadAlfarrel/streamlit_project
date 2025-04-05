@@ -28,3 +28,5 @@ cobastream.py
 
 # Ignore model files (kalau besar atau sensitif)
 model/
+
+*.h5
