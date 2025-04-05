@@ -1,7 +1,30 @@
-.streamlit/
-env_streamlit/
+# Ignore Python cache and compiled files
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
 
+# Ignore virtual environments
+env/
+venv/
+env_streamlit/
+
+# Ignore VSCode settings (optional)
+.vscode/
+
+# Ignore Streamlit secrets
+.streamlit/secrets.toml
+
+# Ignore logs and CSVs (optional)
+*.log
+*.csv
+
+# Ignore specific scripts (sesuai permintaan)
 bot.py
 cobastream.py
+
+# Jupyter Notebook checkpoints (kalau pakai)
+.ipynb_checkpoints/
+
+# Ignore model files (kalau besar atau sensitif)
+model/
