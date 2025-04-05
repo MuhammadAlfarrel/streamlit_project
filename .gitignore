@@ -1,7 +1,7 @@
 .streamlit/
-.venv
+env_streamlit/
 __pycache__/
 *.pyc
 
 bot.py
-cobasrewam.py
+cobastream.py
